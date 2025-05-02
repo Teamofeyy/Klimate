@@ -20,7 +20,7 @@ class WeatherAPI {
         return responce.json();
     }
     
-    private getCurrentWeather({lat, lon}:Coordinates):Promise<WeatherData> {
+    async getCurrentWeather({lat, lon}:Coordinates):Promise<WeatherData> {
         const url = this.createUrl(`${API_CONFIG.BASE_URL}/weather`, {
             lat:lat.toString(), 
             lon:lon.toString(),
@@ -30,7 +30,7 @@ class WeatherAPI {
         return this.fetchData<WeatherData>(url);
     }
 
-    private getForecast({lat, lon}:Coordinates):Promise<ForecastData> {
+    async getForecast({lat, lon}:Coordinates):Promise<ForecastData> {
         const url = this.createUrl(`${API_CONFIG.BASE_URL}/forecast`, {
             lat:lat.toString(), 
             lon:lon.toString(),
@@ -40,7 +40,7 @@ class WeatherAPI {
         return this.fetchData<ForecastData>(url);
     } 
 
-    private reverseGeocode({lat, lon}:Coordinates):Promise<GeocodingResponse[]> {
+    async reverseGeocode({lat, lon}:Coordinates):Promise<GeocodingResponse[]> {
         const url = this.createUrl(`${API_CONFIG.GEOCODING_API}/reverse`, {
             lat:lat.toString(), 
             lon:lon.toString(),
