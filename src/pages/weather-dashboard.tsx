@@ -1,6 +1,7 @@
 import CurrentWeather from "@/components/current-weather"
 import HourlyTemperature from "@/components/hourly-temperature"
 import WeatherSkeleton from "@/components/loading-skeleton"
+import WeatherDetails from "@/components/weather-details"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useGeolocation } from "@/hooks/use-geolocation"
@@ -97,7 +98,7 @@ const WetherDashboard = () => {
           <HourlyTemperature data={forecastQuery.data} />
         </div>
         <div>
-
+          <WeatherDetails data={weatherQuery.data} />
         </div>
       </div>
     </div>
