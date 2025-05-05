@@ -2,6 +2,7 @@ import CurrentWeather from "@/components/current-weather"
 import HourlyTemperature from "@/components/hourly-temperature"
 import WeatherSkeleton from "@/components/loading-skeleton"
 import WeatherDetails from "@/components/weather-details"
+import WeatherForecast from "@/components/weather-forecast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useGeolocation } from "@/hooks/use-geolocation"
@@ -9,7 +10,7 @@ import { useForecastQuery, useReverseGeocodeQuery, useWeatherQuery } from "@/hoo
 import { AlertCircle, MapPin, RefreshCw } from "lucide-react"
 
 const WetherDashboard = () => {
-  const {coordinates, error: locationError, getLocation, isLoading: locationLoading} = useGeolocation()
+  const { coordinates, error: locationError, getLocation, isLoading: locationLoading } = useGeolocation()
 
   const locationQuery = useReverseGeocodeQuery(coordinates)
   const weatherQuery = useWeatherQuery(coordinates)
@@ -17,18 +18,18 @@ const WetherDashboard = () => {
 
   const handleRefresh = () => {
     getLocation()
-    if(coordinates){
+    if (coordinates) {
       weatherQuery.refetch()
       forecastQuery.refetch()
       locationQuery.refetch()
     }
   }
 
-  if(locationLoading){
+  if (locationLoading) {
     return <WeatherSkeleton />
   }
 
-  if(locationError){
+  if (locationError) {
     return (
       <Alert variant={'destructive'}>
         <AlertCircle className="h-4 w-4" />
@@ -40,11 +41,11 @@ const WetherDashboard = () => {
             Включить геолокацию
           </Button>
         </AlertDescription>
-    </Alert>
+      </Alert>
     )
   }
 
-  if(!coordinates){
+  if (!coordinates) {
     return (
       <Alert variant={'destructive'}>
         <AlertCircle className="h-4 w-4" />
@@ -56,13 +57,13 @@ const WetherDashboard = () => {
             Включить геолокацию
           </Button>
         </AlertDescription>
-    </Alert>
+      </Alert>
     )
   }
 
   const locationName = locationQuery.data?.[0]
 
-  if(weatherQuery.error || forecastQuery.error){
+  if (weatherQuery.error || forecastQuery.error) {
     return (
       <Alert variant={'destructive'}>
         <AlertCircle className="h-4 w-4" />
@@ -74,11 +75,11 @@ const WetherDashboard = () => {
             Повторить
           </Button>
         </AlertDescription>
-    </Alert>
+      </Alert>
     )
   }
 
-  if (!weatherQuery.data || !forecastQuery.data){
+  if (!weatherQuery.data || !forecastQuery.data) {
     return <WeatherSkeleton />
   }
 
@@ -88,7 +89,7 @@ const WetherDashboard = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">Моё Местоположение</h1>
         <Button variant={'outline'} size={'icon'} onClick={handleRefresh} disabled={weatherQuery.isFetching || forecastQuery.isFetching}>
-          <RefreshCw className={`h-4 w-4 ${weatherQuery.isFetching?"animate-spin":""}`} />
+          <RefreshCw className={`h-4 w-4 ${weatherQuery.isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
@@ -97,8 +98,9 @@ const WetherDashboard = () => {
           <CurrentWeather data={weatherQuery.data} locationName={locationName} />
           <HourlyTemperature data={forecastQuery.data} />
         </div>
-        <div>
+        <div className="grid gap-6 md:grid-cols-2 items-start">
           <WeatherDetails data={weatherQuery.data} />
+          <WeatherForecast data={forecastQuery.data} />
         </div>
       </div>
     </div>
