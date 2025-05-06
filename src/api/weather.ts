@@ -25,6 +25,7 @@ class WeatherAPI {
             lat:lat.toString(), 
             lon:lon.toString(),
             units:API_CONFIG.DEFAULT_PARAMS.units,
+            lang: 'ru',
         })
 
         return this.fetchData<WeatherData>(url);
@@ -35,6 +36,7 @@ class WeatherAPI {
             lat:lat.toString(), 
             lon:lon.toString(),
             units:API_CONFIG.DEFAULT_PARAMS.units,
+            lang: 'ru',
         }) 
 
         return this.fetchData<ForecastData>(url);
@@ -45,6 +47,7 @@ class WeatherAPI {
             lat:lat.toString(), 
             lon:lon.toString(),
             limit: 1,
+            lang: 'ru',
         }) 
 
         return this.fetchData<GeocodingResponse[]>(url);
