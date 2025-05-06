@@ -25,7 +25,6 @@ jobs:
             
           docker stop klimate || true
           docker rm klimate || true
-
           docker build -t klimate:latest .
 
           docker run -d \
