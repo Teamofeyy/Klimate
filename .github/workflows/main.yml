@@ -4,31 +4,32 @@ on:
   push:
     branches: [ master ]
 
-  jobs:
-    build:
-      runs-on: ubuntu-latest
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-      steps:
-      - name: Deploy using ssh
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          port: 22
-          script: |
-            cd ~/klimate
-            git pull origin master
-            git status
-            npm install
-            npm run build
+    steps:
+    - name: Deploy using ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: 22
+        script: |
+          cd ~/klimate
+          git pull origin master
+          git status
+          npm install
+          npm run build
             
-            docker stop klimate || true
-            docker rm klimate || true
+          docker stop klimate || true
+          docker rm klimate || true
 
-            docker build -t klimate:latest .
+          docker build -t klimate:latest .
 
-            docker run -d \
-            --name klimate \
-            -p 8080:80 \
-            klimate:latest
+          docker run -d \
+          --name klimate \
+          -p 8080:80 \
+          klimate:latest
+  
