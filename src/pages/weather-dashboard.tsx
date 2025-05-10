@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useGeolocation } from "@/hooks/use-geolocation"
 import { useForecastQuery, useReverseGeocodeQuery, useWeatherQuery } from "@/hooks/use-weather"
 import { AlertCircle, MapPin, RefreshCw } from "lucide-react"
+import { FavoriteCities } from "@/components/favorite-cities"
 
 const WetherDashboard = () => {
   const { coordinates, error: locationError, getLocation, isLoading: locationLoading } = useGeolocation()
@@ -85,7 +86,7 @@ const WetherDashboard = () => {
 
   return (
     <div className="space-y-4">
-      {/* Favorite Cities */}
+      <FavoriteCities />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">Моё Местоположение</h1>
         <Button variant={'outline'} size={'icon'} onClick={handleRefresh} disabled={weatherQuery.isFetching || forecastQuery.isFetching}>
