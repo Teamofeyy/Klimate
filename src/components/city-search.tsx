@@ -13,7 +13,7 @@ const CitySearch = () => {
   const navigate = useNavigate()
 
   const handleSelect = (cityData: string) => {
-    const [lat, lon, name, country] = cityData.split("|")
+    const [lat, lon, name,] = cityData.split("|")
 
     setOpen(false)
     navigate(`/city/${name}??lat=${lat}&lon=${lon}`)
