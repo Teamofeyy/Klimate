@@ -1,11 +1,12 @@
 import './App.css'
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from './components/layout';
 import { ThemeProvider } from './context/theme-provider';
 import WetherDashboard from './pages/weather-dashboard';
 import CityPage from './pages/city-page';
-import {QueryClientProvider, QueryClient,} from '@tanstack/react-query'
+import { QueryClientProvider, QueryClient, } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { Toaster } from 'sonner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ function App() {
               <Route path='/city/:cityName' element={<CityPage />} />
             </Routes>
           </Layout>
+          <Toaster richColors />
           <ReactQueryDevtools initialIsOpen={false} />
         </ThemeProvider>
       </BrowserRouter>
