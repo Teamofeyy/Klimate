@@ -36,7 +36,7 @@ const WetherDashboard = () => {
         <AlertTitle>Ошибка геолокации</AlertTitle>
         <AlertDescription>
           <p>{locationError}</p>
-          <Button onClick={getLocation} variant={'outline'} className="w-fit">
+          <Button onClick={handleRefresh} variant={'outline'} className="w-fit">
             <MapPin className="mr-2 h-4 w-4" />
             Включить геолокацию
           </Button>
