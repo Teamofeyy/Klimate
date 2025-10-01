@@ -1,54 +1,62 @@
-# React + TypeScript + Vite
+# 🌤️ Klimate
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Deploy](https://img.shields.io/badge/Vercel-Live-success?logo=vercel)](https://klimate-ecru.vercel.app/)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38B2AC?logo=tailwindcss)
+![TanStack Query](https://img.shields.io/badge/TanStack%20Query-5-ff69b4)
+![Shadcn](https://img.shields.io/badge/UI-shadcn/ui-black?logo=radixui)
+![Weather API](https://img.shields.io/badge/API-OpenWeatherAPI-orange)
 
-Currently, two official plugins are available:
+> Веб-сервис прогноза погоды с геолокацией и избранными городами.  
+> Построен на **React + TypeScript + TailwindCSS** с использованием **TanStack Query**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Demo
+🔗 [Открыть проект на Vercel](https://klimate-ecru.vercel.app/)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## ✨ Features
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- 🌍 Определение погоды по **текущей геолокации**
+- 🔎 **Поиск городов** с автодополнением
+- ⭐ Добавление городов в **избранное**
+- 📊 Дэшборд с текущей погодой и прогнозом
+- ⚡ Оптимизация запросов через **TanStack Query**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 🛠️ Tech Stack
+
+- **Frontend**: React, TypeScript, TailwindCSS, Shadcn/UI  
+- **State/Query**: TanStack Query  
+- **API**: [OpenWeather API]([https://www.weatherapi.com/](https://openweathermap.org/api)) (погода), [Geocoding API](https://openweathermap.org/api/geocoding-api) (геолокация)  
+- **Deploy**: Vercel  
+
+---
+
+## 📸 Screenshots
+
+| Главный экран | Поиск по городам | Страница города |
+|---------------|------------------|-----------------|
+| ![dashboard](./screenshots/dashboard.png) | ![search](./screenshots/search.png) | ![city page](./screenshots/city-page.png)
+
+---
+
+## ⚙️ Установка и запуск
+
+```bash
+# Клонировать проект
+git clone https://github.com/yourusername/klimate.git
+
+# Перейти в папку проекта
+cd klimate
+
+# Установить зависимости
+npm install
+
+# Запустить проект
+npm run dev
+````
