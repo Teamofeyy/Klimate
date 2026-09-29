@@ -1,59 +1,71 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  isLocationSummary,
+  type LocationSummary,
+} from "@/api/types";
+import { useCallback } from "react";
 import { useLocalStorage } from "./use-local-storage";
+import { isFiniteNumber } from "@/lib/type-guards";
+import { getLocationId } from "@/lib/location";
 
-interface SearchHistoryItem {
+interface SearchHistoryItem extends LocationSummary {
   id: string;
-  query: string;
-  lat: number;
-  lon: number;
-  name: string;
-  country: string;
-  state?: string;
-  seacrhedAt: number;
+  searchedAt: number;
+}
 
+function parseSearchHistory(value: unknown): SearchHistoryItem[] {
+  if (!Array.isArray(value)) return []
+
+  return value.flatMap((item) => {
+    if (!isLocationSummary(item)) return []
+
+    const searchedAt = item.searchedAt ?? item.seacrhedAt
+    if (!isFiniteNumber(searchedAt)) return []
+
+    return [{
+      id: getLocationId(item),
+      name: item.name,
+      lat: item.lat,
+      lon: item.lon,
+      country: item.country,
+      state: item.state,
+      searchedAt,
+    }]
+  })
 }
 
 export function useSearchHistory() {
-  const [history, setHistory] = useLocalStorage<SearchHistoryItem[]>("search-history", [])
+  const [history, setHistory] = useLocalStorage<SearchHistoryItem[]>(
+    "search-history",
+    [],
+    parseSearchHistory,
+  )
 
-  const queryClient = useQueryClient()
-
-  const historyQuery = useQuery({
-    queryKey: ["search-history"],
-    queryFn: () => history,
-    initialData: history,
-  })
-
-  const addToHistory = useMutation({
-    mutationFn: async (search: Omit<SearchHistoryItem, "id" | "seacrhedAt">) => {
+  const addToHistory = useCallback(
+    (search: LocationSummary) => {
+      const searchedAt = Date.now()
+      const id = getLocationId(search)
       const newSearch: SearchHistoryItem = {
-        ...search,
-        id: `${search.lat}-${search.lon}-${Date.now()}`,
-        seacrhedAt: Date.now(),
+        id,
+        name: search.name,
+        lat: search.lat,
+        lon: search.lon,
+        country: search.country,
+        state: search.state,
+        searchedAt,
       }
 
-      const filteredHistory = history.filter((item) => !(item.lat === search.lat && item.lon === search.lon))
-
-      const newHistory = [newSearch, ...filteredHistory].slice(0, 10)
-      setHistory(newHistory)
-      return newHistory
+      setHistory((currentHistory) => [
+        newSearch,
+        ...currentHistory.filter((item) => item.id !== id),
+      ].slice(0, 10))
     },
-    onSuccess: (newHistory) => {
-      queryClient.setQueryData(["search-history"], newHistory)
-    }
-  })
+    [setHistory],
+  )
 
-  const clearHistory = useMutation({
-    mutationFn: async () => {
-      setHistory([])
-      return []
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["search-history"], [])
-    }
-  })
+  const clearHistory = useCallback(() => setHistory([]), [setHistory])
+
   return {
-    history: historyQuery.data ?? [],
+    history,
     addToHistory,
     clearHistory
   }

@@ -1,4 +1,3 @@
-// src/components/weather/favorite-cities.tsx
 import { useNavigate } from "react-router-dom";
 import { useWeatherQuery } from "@/hooks/use-weather";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -6,6 +5,8 @@ import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/use-favorite";
 import { toast } from "sonner";
+import { getWeatherIconUrl } from "@/api/config";
+import { formatTemperature } from "@/lib/weather-format";
 
 interface FavoriteCityTabletProps {
   id: string;
@@ -23,19 +24,54 @@ function FavoriteCityTablet({
   onRemove,
 }: FavoriteCityTabletProps) {
   const navigate = useNavigate();
-  const { data: weather, isLoading } = useWeatherQuery({ lat, lon });
+  const { data: weather, isLoading, isError } = useWeatherQuery({ lat, lon });
 
   const handleClick = () => {
     navigate(`/city/${name}?lat=${lat}&lon=${lon}`);
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="relative flex min-w-[250px] cursor-pointer items-center gap-3 rounded-lg border bg-card p-4 pr-8 shadow-sm transition-all hover:shadow-md"
-      role="button"
-      tabIndex={0}
-    >
+    <div className="relative min-w-[250px] rounded-lg border bg-card shadow-sm transition-all hover:shadow-md">
+      <button
+        type="button"
+        onClick={handleClick}
+        className="flex w-full items-center gap-3 p-4 pr-8 text-left"
+        aria-label={`Открыть погоду: ${name}`}
+      >
+        {isLoading ? (
+          <div className="flex h-8 items-center justify-center" role="status">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="sr-only">Загрузка погоды</span>
+          </div>
+        ) : weather ? (
+          <>
+            <div className="flex items-center gap-2">
+              <img
+                src={getWeatherIconUrl(weather.weather[0].icon)}
+                alt={weather.weather[0].description}
+                className="h-8 w-8"
+              />
+              <div>
+                <p className="font-medium">{name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {weather.sys.country}
+                </p>
+              </div>
+            </div>
+            <div className="ml-auto text-right">
+              <p className="text-xl font-bold">
+                {formatTemperature(weather.main.temp)}
+              </p>
+              <p className="text-xs capitalize text-muted-foreground">
+                {weather.weather[0].description}
+              </p>
+            </div>
+          </>
+        ) : isError ? (
+          <p className="text-sm text-muted-foreground">Погода недоступна</p>
+        ) : null}
+      </button>
+
       <Button
         variant="ghost"
         size="icon"
@@ -43,41 +79,12 @@ function FavoriteCityTablet({
         onClick={(e) => {
           e.stopPropagation();
           onRemove(id);
-          toast.error(`Removed ${name} from Favorites`);
+          toast.error(`${name} удалён из избранного`);
         }}
+        aria-label={`Удалить ${name} из избранного`}
       >
         <X className="h-4 w-4" />
       </Button>
-
-      {isLoading ? (
-        <div className="flex h-8 items-center justify-center">
-          <Loader2 className="h-4 w-4 animate-spin" />
-        </div>
-      ) : weather ? (
-        <>
-          <div className="flex items-center gap-2">
-            <img
-              src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}.png`}
-              alt={weather.weather[0].description}
-              className="h-8 w-8"
-            />
-            <div>
-              <p className="font-medium">{name}</p>
-              <p className="text-xs text-muted-foreground">
-                {weather.sys.country}
-              </p>
-            </div>
-          </div>
-          <div className="ml-auto text-right">
-            <p className="text-xl font-bold">
-              {Math.round(weather.main.temp)}°
-            </p>
-            <p className="text-xs capitalize text-muted-foreground">
-              {weather.weather[0].description}
-            </p>
-          </div>
-        </>
-      ) : null}
     </div>
   );
 }
@@ -91,14 +98,14 @@ export function FavoriteCities() {
 
   return (
     <>
-      <h1 className="text-xl font-bold tracking-tight">Favorites</h1>
+      <h1 className="text-xl font-bold tracking-tight">Избранное</h1>
       <ScrollArea className="w-full pb-4">
         <div className="flex gap-4">
           {favorites.map((city) => (
             <FavoriteCityTablet
               key={city.id}
               {...city}
-              onRemove={() => removeFavorite.mutate(city.id)}
+              onRemove={removeFavorite}
             />
           ))}
         </div>

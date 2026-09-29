@@ -1,8 +1,7 @@
 import { WeatherData } from "@/api/types"
 import { Compass, Gauge, Sunrise, Sunset } from "lucide-react";
-import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ru } from "date-fns/locale";
+import { formatWeatherTime } from "@/lib/weather-time";
 
 interface WeatherDetailsProps {
   data: WeatherData;
@@ -13,14 +12,17 @@ const WeatherDetails = ({ data }: WeatherDetailsProps) => {
 
   const getWindDirection = (degree: number) => {
     const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"]
-
-    const index = Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8
+    const normalizedDegree = ((degree % 360) + 360) % 360
+    const index = Math.round(normalizedDegree / 45) % 8
     return directions[index]
   }
 
-  const formatTime = (timestamp: number) => {
-    return format(new Date(timestamp * 100), "HH:mm", { locale: ru })
-  }
+  const formatTime = (timestamp: number) =>
+    formatWeatherTime(timestamp, data.timezone, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
 
   const details = [
     {

@@ -1,29 +1,28 @@
-import CurrentWeather from "@/components/current-weather"
-import HourlyTemperature from "@/components/hourly-temperature"
 import WeatherSkeleton from "@/components/loading-skeleton"
-import WeatherDetails from "@/components/weather-details"
-import WeatherForecast from "@/components/weather-forecast"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { ErrorAlert } from "@/components/error-alert"
+import { WeatherOverview } from "@/components/weather-overview"
 import { useGeolocation } from "@/hooks/use-geolocation"
-import { useForecastQuery, useReverseGeocodeQuery, useWeatherQuery } from "@/hooks/use-weather"
-import { AlertCircle, MapPin, RefreshCw } from "lucide-react"
+import { WEATHER_KEYS, useForecastQuery, useReverseGeocodeQuery, useWeatherQuery } from "@/hooks/use-weather"
+import { MapPin, RefreshCw } from "lucide-react"
 import { FavoriteCities } from "@/components/favorite-cities"
+import { useQueryClient } from "@tanstack/react-query"
 
-const WetherDashboard = () => {
+const WeatherDashboard = () => {
+  const queryClient = useQueryClient()
   const { coordinates, error: locationError, getLocation, isLoading: locationLoading } = useGeolocation()
 
   const locationQuery = useReverseGeocodeQuery(coordinates)
   const weatherQuery = useWeatherQuery(coordinates)
   const forecastQuery = useForecastQuery(coordinates)
 
-  const handleRefresh = () => {
-    getLocation()
-    if (coordinates) {
-      weatherQuery.refetch()
-      forecastQuery.refetch()
-      locationQuery.refetch()
-    }
+  const handleRefresh = async () => {
+    const refreshedCoordinates = await getLocation()
+    if (!refreshedCoordinates) return
+
+    await queryClient.invalidateQueries({
+      queryKey: WEATHER_KEYS.coordinates(refreshedCoordinates),
+    })
   }
 
   if (locationLoading) {
@@ -32,33 +31,31 @@ const WetherDashboard = () => {
 
   if (locationError) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Ошибка геолокации</AlertTitle>
-        <AlertDescription>
-          <p>{locationError}</p>
-          <Button onClick={handleRefresh} variant={'outline'} className="w-fit">
+      <ErrorAlert
+        title="Ошибка геолокации"
+        description={locationError}
+        action={
+          <Button onClick={() => void handleRefresh()} variant={'outline'} className="w-fit">
             <MapPin className="mr-2 h-4 w-4" />
             Включить геолокацию
           </Button>
-        </AlertDescription>
-      </Alert>
+        }
+      />
     )
   }
 
   if (!coordinates) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Требуется местоположение</AlertTitle>
-        <AlertDescription>
-          <p>Пожалуйста, включите доступ к местоположению, чтобы увидеть местную погоду</p>
-          <Button onClick={getLocation} variant={'outline'} className="w-fit">
+      <ErrorAlert
+        title="Требуется местоположение"
+        description="Пожалуйста, включите доступ к местоположению, чтобы увидеть местную погоду"
+        action={
+          <Button onClick={() => void getLocation()} variant={'outline'} className="w-fit">
             <MapPin className="mr-2 h-4 w-4" />
             Включить геолокацию
           </Button>
-        </AlertDescription>
-      </Alert>
+        }
+      />
     )
   }
 
@@ -66,17 +63,16 @@ const WetherDashboard = () => {
 
   if (weatherQuery.error || forecastQuery.error) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Ошибка</AlertTitle>
-        <AlertDescription>
-          <p>Не удалось получить данные о погоде. Попробуйте еще раз.</p>
-          <Button onClick={getLocation} variant={'outline'} className="w-fit">
+      <ErrorAlert
+        title="Ошибка"
+        description="Не удалось получить данные о погоде. Попробуйте еще раз."
+        action={
+          <Button onClick={() => void handleRefresh()} variant={'outline'} className="w-fit">
             <RefreshCw className="mr-2 h-4 w-4" />
             Повторить
           </Button>
-        </AlertDescription>
-      </Alert>
+        }
+      />
     )
   }
 
@@ -89,23 +85,25 @@ const WetherDashboard = () => {
       <FavoriteCities />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">Моё Местоположение</h1>
-        <Button variant={'outline'} size={'icon'} onClick={handleRefresh} disabled={weatherQuery.isFetching || forecastQuery.isFetching}>
+        <Button
+          variant={'outline'}
+          size={'icon'}
+          onClick={() => void handleRefresh()}
+          disabled={locationLoading || weatherQuery.isFetching || forecastQuery.isFetching}
+          aria-label="Обновить погоду"
+        >
           <RefreshCw className={`h-4 w-4 ${weatherQuery.isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
-      <div className="grid gap-6">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <CurrentWeather data={weatherQuery.data} locationName={locationName} />
-          <HourlyTemperature data={forecastQuery.data} />
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 items-start">
-          <WeatherDetails data={weatherQuery.data} />
-          <WeatherForecast data={forecastQuery.data} />
-        </div>
-      </div>
+      <WeatherOverview
+        weather={weatherQuery.data}
+        forecast={forecastQuery.data}
+        locationName={locationName}
+        currentLayout="split"
+      />
     </div>
   )
 }
 
-export default WetherDashboard 
+export default WeatherDashboard

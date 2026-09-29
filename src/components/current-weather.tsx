@@ -1,20 +1,23 @@
-import { GeocodingResponse, WeatherData } from "@/api/types"
+import type { LocationSummary, WeatherData } from "@/api/types"
 import { Card, CardContent, } from "./ui/card"
 import { ArrowDown, ArrowUp, Droplets, Wind } from "lucide-react"
+import { getWeatherIconUrl } from "@/api/config"
+import { formatTemperature, formatWindSpeed } from "@/lib/weather-format"
 
 interface CurrentWeatherProps {
   data: WeatherData,
-  locationName?: GeocodingResponse,
+  locationName?: LocationSummary,
 }
 
 const CurrentWeather = ({ data, locationName }: CurrentWeatherProps) => {
   const {
-    weather: [CurrentWeather],
+    weather: [currentCondition],
     main: { temp, feels_like, temp_min, temp_max, humidity },
     wind: { speed },
   } = data
+  const displayedName = locationName?.name ?? data.name
+  const displayedCountry = locationName?.country ?? data.sys.country
 
-  const formatTemp = (temp: number) => `${Math.round(temp)}°`
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-6">
@@ -22,7 +25,7 @@ const CurrentWeather = ({ data, locationName }: CurrentWeatherProps) => {
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-end gap-1">
-                <h2 className="text-2xl font-bold tracking-tighter">{locationName?.name}</h2>
+                <h2 className="text-2xl font-bold tracking-tighter">{displayedName}</h2>
                 {locationName?.state && (
                   <span className="text-muted-foreground">
                     , {locationName.state}
@@ -30,26 +33,26 @@ const CurrentWeather = ({ data, locationName }: CurrentWeatherProps) => {
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {locationName?.country}
+                {displayedCountry}
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <p className="text-7xl font-bold tracking-tighter">{formatTemp(temp)}</p>
+              <p className="text-7xl font-bold tracking-tighter">{formatTemperature(temp)}</p>
 
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Ощущается как {formatTemp(feels_like)}
+                  Ощущается как {formatTemperature(feels_like)}
                 </p>
 
                 <div className="flex gap-2 text-sm font-medium">
                   <span className="flex items-center gap-1 text-blue-500">
                     <ArrowDown className="h-3 w-3" />
-                    {formatTemp(temp_min)}
+                    {formatTemperature(temp_min)}
                   </span>
                   <span className="flex items-center gap-1 text-red-500">
                     <ArrowUp className="h-3 w-3" />
-                    {formatTemp(temp_max)}
+                    {formatTemperature(temp_max)}
                   </span>
                 </div>
               </div>
@@ -68,7 +71,7 @@ const CurrentWeather = ({ data, locationName }: CurrentWeatherProps) => {
                 <Wind className="h-3 w-3 text-blue-500" />
                 <div className="space-y-0.5">
                   <p className="text-sm font-medium">Скорость ветра</p>
-                  <p className="text-sm text-muted-foreground">{speed}м/с</p>
+                  <p className="text-sm text-muted-foreground">{formatWindSpeed(speed)}</p>
                 </div>
               </div>
             </div>
@@ -77,13 +80,13 @@ const CurrentWeather = ({ data, locationName }: CurrentWeatherProps) => {
           <div className="flex flex-col items-center justify-center">
             <div className="relative flex aspect-square w-full max-w-[200px] items-center justify-center">
               <img
-                src={`https://openweathermap.org/img/wn/${CurrentWeather.icon}@4x.png`}
-                alt={CurrentWeather.description}
+                src={getWeatherIconUrl(currentCondition.icon, 4)}
+                alt={currentCondition.description}
                 className="h-full w-full object-contain"
               />
               <div className="absolute bottom-0 text-center">
                 <p className="text-sm font-medium capitalize">
-                  {CurrentWeather.description}
+                  {currentCondition.description}
                 </p>
               </div>
             </div>

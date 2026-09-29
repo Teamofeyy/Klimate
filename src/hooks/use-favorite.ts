@@ -1,66 +1,66 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { useLocalStorage } from "./use-local-storage";
+import {
+  isLocationSummary,
+  type LocationSummary,
+} from "@/api/types";
+import { isFiniteNumber } from "@/lib/type-guards";
+import { getLocationId } from "@/lib/location";
 
-export interface FavoriteCity {
+export interface FavoriteCity extends LocationSummary {
   id: string;
-  name: string;
-  lat: number;
-  lon: number;
-  country: string;
-  state?: string;
   addedAt: number;
+}
+
+function parseFavorites(value: unknown): FavoriteCity[] {
+  if (!Array.isArray(value)) return []
+
+  return value.filter(
+    (city): city is FavoriteCity =>
+      isLocationSummary(city) &&
+      city.id === getLocationId(city) &&
+      isFiniteNumber(city.addedAt),
+  )
 }
 
 export function useFavorites() {
   const [favorites, setFavorites] = useLocalStorage<FavoriteCity[]>(
     "favorites",
-    []
+    [],
+    parseFavorites,
   );
-  const queryClient = useQueryClient();
 
-  const favoritesQuery = useQuery({
-    queryKey: ["favorites"],
-    queryFn: () => favorites,
-    initialData: favorites,
-    staleTime: Infinity,
-  });
-
-  const addFavorite = useMutation({
-    mutationFn: async (city: Omit<FavoriteCity, "id" | "addedAt">) => {
+  const addFavorite = useCallback(
+    (city: LocationSummary) => {
       const newFavorite: FavoriteCity = {
         ...city,
-        id: `${city.lat}-${city.lon}`,
+        id: getLocationId(city),
         addedAt: Date.now(),
       };
 
-      const exists = favorites.some((fav) => fav.id === newFavorite.id);
-      if (exists) return favorites;
+      setFavorites((currentFavorites) =>
+        currentFavorites.some((favorite) => favorite.id === newFavorite.id)
+          ? currentFavorites
+          : [...currentFavorites, newFavorite],
+      );
+    },
+    [setFavorites],
+  );
 
-      const newFavorites = [...favorites, newFavorite];
-      setFavorites(newFavorites);
-      return newFavorites;
+  const removeFavorite = useCallback(
+    (cityId: string) => {
+      setFavorites((currentFavorites) =>
+        currentFavorites.filter((city) => city.id !== cityId),
+      );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-  });
-
-  const removeFavorite = useMutation({
-    mutationFn: async (cityId: string) => {
-      const newFavorites = favorites.filter((city) => city.id !== cityId);
-      setFavorites(newFavorites);
-      return newFavorites;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-    },
-  });
+    [setFavorites],
+  );
 
   return {
-    favorites: favoritesQuery.data,
+    favorites,
     addFavorite,
     removeFavorite,
     isFavorite: (lat: number, lon: number) =>
-      favorites.some((city) => city.lat === lat && city.lon === lon),
+      favorites.some((city) => city.id === getLocationId({ lat, lon })),
   };
 }

@@ -1,7 +1,8 @@
 import { ForecastData } from "@/api/types"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { format } from "date-fns"
+import { formatWeatherTime } from "@/lib/weather-time"
+import { roundTemperature } from "@/lib/weather-format"
 
 interface HourlyTemperatureProps {
     data: ForecastData;
@@ -9,9 +10,13 @@ interface HourlyTemperatureProps {
 
 const HourlyTemperature = ({ data }: HourlyTemperatureProps) => {
     const chartData = data.list.slice(0, 8).map((item) => ({
-        time: format(new Date(item.dt * 1000), "HH:mm"),
-        temp: Math.round(item.main.temp),
-        feels_like: Math.round(item.main.feels_like),
+        time: formatWeatherTime(item.dt, data.city.timezone, {
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23",
+        }),
+        temp: roundTemperature(item.main.temp),
+        feels_like: roundTemperature(item.main.feels_like),
     }))
 
     return (
@@ -42,15 +47,19 @@ const HourlyTemperature = ({ data }: HourlyTemperatureProps) => {
                                 content={({ active, payload }) => {
                                     if (active && payload && payload.length) {
                                         return (
-                                            <div className="rounden-lg border bg-background p-2 shadow-sm">
+                                            <div className="rounded-lg border bg-background p-2 shadow-sm">
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div className="flex flex-col">
                                                         <span className="text-[0.70rem] uppercase text-muted-foreground">Температура</span>
-                                                        <span className="font-bold">{payload[0].value}°</span>
+                                                        <span className="font-bold">
+                                                            {payload.find((entry) => entry.dataKey === "temp")?.value}°
+                                                        </span>
                                                     </div>
                                                     <div className="flex flex-col" >
                                                         <span className="text-[0.70rem] uppercase text-muted-foreground">Ощущается как</span>
-                                                        <span className="font-bold">{payload[0].value}°</span>
+                                                        <span className="font-bold">
+                                                            {payload.find((entry) => entry.dataKey === "feels_like")?.value}°
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>

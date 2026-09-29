@@ -1,61 +1,62 @@
-import CurrentWeather from "@/components/current-weather"
 import { FavoriteButton } from "@/components/favorite-button"
-import HourlyTemperature from "@/components/hourly-temperature"
 import WeatherSkeleton from "@/components/loading-skeleton"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import WeatherDetails from "@/components/weather-details"
-import WeatherForecast from "@/components/weather-forecast"
+import { ErrorAlert } from "@/components/error-alert"
+import { WeatherOverview } from "@/components/weather-overview"
 import { useWeatherQuery, useForecastQuery } from "@/hooks/use-weather"
-import { AlertCircle, } from "lucide-react"
 import { useParams, useSearchParams } from "react-router-dom"
+import { isValidCoordinates } from "@/api/types"
 
 const CityPage = () => {
   const [searchParams] = useSearchParams()
   const params = useParams()
-  const lat = parseFloat(searchParams.get("lat") || "0")
-  const lon = parseFloat(searchParams.get("lon") || "0")
-  const coordinates = { lat, lon }
+  const latParam = searchParams.get("lat")
+  const lonParam = searchParams.get("lon")
+  const lat = latParam === null ? Number.NaN : Number(latParam)
+  const lon = lonParam === null ? Number.NaN : Number(lonParam)
+  const parsedCoordinates = { lat, lon }
+  const coordinates = isValidCoordinates(parsedCoordinates)
+    ? parsedCoordinates
+    : null
 
   const weatherQuery = useWeatherQuery(coordinates)
   const forecastQuery = useForecastQuery(coordinates)
 
-  if (weatherQuery.error || forecastQuery.error) {
+  if (!coordinates || !params.cityName) {
     return (
-      <Alert variant={'destructive'}>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Ошибка</AlertTitle>
-        <AlertDescription>
-          <p>Не удалось получить данные о погоде. Попробуйте еще раз.</p>
-        </AlertDescription>
-      </Alert>
+      <ErrorAlert
+        title="Некорректный адрес"
+        description="Выберите город через поиск, чтобы открыть прогноз."
+      />
     )
   }
 
-  if (!weatherQuery.data || !forecastQuery.data || !params.cityName) {
+  if (weatherQuery.error || forecastQuery.error) {
+    return (
+      <ErrorAlert
+        title="Ошибка"
+        description="Не удалось получить данные о погоде. Попробуйте еще раз."
+      />
+    )
+  }
+
+  if (!weatherQuery.data || !forecastQuery.data) {
     return <WeatherSkeleton />
   }
   return (
     <div className="space-y-4">
-      {/* Favorite Cities */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
-          {params.cityName}, {weatherQuery.data.sys.country}
+          {weatherQuery.data.name}, {weatherQuery.data.sys.country}
         </h1>
         <div>
-          <FavoriteButton data={{ ...weatherQuery.data, name: params.cityName }} />
+          <FavoriteButton data={weatherQuery.data} />
         </div>
       </div>
 
-      <div className="grid gap-6">
-        <div className="flex flex-col gap-4">
-          <CurrentWeather data={weatherQuery.data} />
-          <HourlyTemperature data={forecastQuery.data} />
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 items-start">
-          <WeatherDetails data={weatherQuery.data} />
-          <WeatherForecast data={forecastQuery.data} />
-        </div>
-      </div>
+      <WeatherOverview
+        weather={weatherQuery.data}
+        forecast={forecastQuery.data}
+      />
     </div>
   )
 }
